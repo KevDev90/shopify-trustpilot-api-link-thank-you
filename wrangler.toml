@@ -1,0 +1,20 @@
+name = "trustpilot-invitation-middleware"
+main = "index.js"
+compatibility_date = "2024-04-03"
+
+[vars]
+TRUSTPILOT_BUSINESS_UNIT_ID = "63d2b393898cf1df6ab24eff"
+TRUSTPILOT_LOCALE = "en-US"
+RATE_LIMIT_PER_MINUTE = "60"
+
+# Secrets (configure with wrangler secret put):
+# TRUSTPILOT_API_KEY
+# TRUSTPILOT_API_SECRET
+# TRUSTPILOT_BUSINESS_USER_ID  (required for client_credentials grant)
+# WORKER_API_KEY               (optional shared key for extension -> worker auth)
+# TRUSTPILOT_REDIRECT_URI      (optional post-review redirect)
+
+[[kv_namespaces]]
+binding = "TOKEN_CACHE"
+id = "712811fcd2d84d1b84a32b8fa724574b"
+preview_id = "d54f3b842cf2480195d6e702b2b06583"

@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+shopify-app/node_modules/
+shopify-app/extensions/*/node_modules/
+
+# Shopify CLI / local bundles
+shopify-app/.shopify/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# Build / dist artifacts
+dist/
+shopify-app/extensions/*/dist/
+*.br
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+
+# Secrets / credentials
+*.pem
+credentials.json

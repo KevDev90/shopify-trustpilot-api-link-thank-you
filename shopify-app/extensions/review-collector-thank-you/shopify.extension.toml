@@ -1,0 +1,42 @@
+api_version = "2025-10"
+
+[[extensions]]
+name = "review-collector-thank-you"
+handle = "review-collector-thank-you"
+type = "ui_extension"
+uid = "review-collector-thank-you-001"
+
+[[extensions.targeting]]
+module = "./src/ThankYou.jsx"
+target = "purchase.thank-you.block.render"
+
+[extensions.capabilities]
+network_access = true
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "heading"
+type = "single_line_text_field"
+name = "Heading"
+
+[[extensions.settings.fields]]
+key = "description"
+type = "multi_line_text_field"
+name = "Description"
+
+[[extensions.settings.fields]]
+key = "button_label"
+type = "single_line_text_field"
+name = "Button label"
+
+[[extensions.settings.fields]]
+key = "worker_url"
+type = "single_line_text_field"
+name = "Cloudflare Worker URL"
+description = "Example: https://trustpilot-invitation-middleware.your-subdomain.workers.dev"
+
+[[extensions.settings.fields]]
+key = "worker_api_key"
+type = "single_line_text_field"
+name = "Worker API key (optional)"
+description = "Must match WORKER_API_KEY secret configured on the Worker"

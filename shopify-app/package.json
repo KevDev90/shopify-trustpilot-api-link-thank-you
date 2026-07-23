@@ -1,0 +1,11 @@
+{
+  "name": "review-collector-app",
+  "private": true,
+  "workspaces": [
+    "extensions/*"
+  ],
+  "scripts": {
+    "dev": "shopify app dev",
+    "deploy": "shopify app deploy"
+  }
+}
