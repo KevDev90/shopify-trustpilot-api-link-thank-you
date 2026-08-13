@@ -30,7 +30,16 @@ Shopify Thank You Extension
 ## Quick start (Worker)
 
 1. Update `TRUSTPILOT_BUSINESS_UNIT_ID` in `wrangler.toml` to your BUID.
-2. Set secrets:
+2. Create **your own** KV namespaces (required — do not reuse IDs from someone else’s account):
+
+```bash
+wrangler kv namespace create TOKEN_CACHE
+wrangler kv namespace create TOKEN_CACHE --preview
+```
+
+Paste the printed IDs into `wrangler.toml` under `[[kv_namespaces]]` (`id` and `preview_id`). Keep `binding = "TOKEN_CACHE"`.
+
+3. Set secrets with `wrangler secret put` (never put these in `wrangler.toml` `[vars]`):
 
 ```bash
 wrangler secret put TRUSTPILOT_API_KEY
@@ -41,13 +50,15 @@ wrangler secret put WORKER_API_KEY
 wrangler secret put TRUSTPILOT_REDIRECT_URI
 ```
 
-3. Deploy from **repo root** (folder containing this `index.js`):
+4. Deploy from **repo root** (folder containing this `index.js`):
 
 ```bash
 wrangler deploy
 ```
 
-4. Test with **POST** (not GET):
+If Wrangler warns that env vars conflict with remote secrets, cancel and remove any API keys from `wrangler.toml` — secrets belong only in `wrangler secret put`.
+
+5. Test with **POST** (not GET):
 
 ```bash
 curl -s -X POST "https://YOUR-WORKER.workers.dev" \
@@ -73,4 +84,6 @@ See [`shopify-app/README.md`](shopify-app/README.md) for:
 ## Important
 
 - Deploy **`index.js`** with Wrangler. Do **not** deploy `legacy/in-app-widget/index.html` as the Worker.
+- Create your own Cloudflare KV namespace before deploy. Using another account’s KV id causes: `KV namespace '…' not found [code: 10041]`.
+- Never commit Trustpilot API keys or `WORKER_API_KEY` in `wrangler.toml` — use secrets only.
 - If Postman GET returns an HTML email form, or POST returns 405, you are hitting the wrong deployment — redeploy this Worker and use the URL Wrangler prints.

@@ -2,19 +2,24 @@ name = "trustpilot-invitation-middleware"
 main = "index.js"
 compatibility_date = "2024-04-03"
 
+# Non-secret config only. Put YOUR Business Unit ID here.
+# Do NOT put API keys, secrets, or WORKER_API_KEY in this file — use `wrangler secret put`.
 [vars]
-TRUSTPILOT_BUSINESS_UNIT_ID = "63d2b393898cf1df6ab24eff"
+TRUSTPILOT_BUSINESS_UNIT_ID = "YOUR_TRUSTPILOT_BUSINESS_UNIT_ID"
 TRUSTPILOT_LOCALE = "en-US"
 RATE_LIMIT_PER_MINUTE = "60"
 
-# Secrets (configure with wrangler secret put):
+# Secrets (configure with wrangler secret put — never commit these):
 # TRUSTPILOT_API_KEY
 # TRUSTPILOT_API_SECRET
 # TRUSTPILOT_BUSINESS_USER_ID  (required for client_credentials grant)
 # WORKER_API_KEY               (optional shared key for extension -> worker auth)
 # TRUSTPILOT_REDIRECT_URI      (optional post-review redirect)
 
+# Create YOUR own KV namespaces in your Cloudflare account, then paste the IDs:
+#   wrangler kv namespace create TOKEN_CACHE
+#   wrangler kv namespace create TOKEN_CACHE --preview
 [[kv_namespaces]]
 binding = "TOKEN_CACHE"
-id = "712811fcd2d84d1b84a32b8fa724574b"
-preview_id = "d54f3b842cf2480195d6e702b2b06583"
+id = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"
