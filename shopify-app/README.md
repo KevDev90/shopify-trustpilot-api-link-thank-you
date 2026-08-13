@@ -1,6 +1,12 @@
 # Shopify Review Collector (Invitation Link Architecture)
 
-Lightweight Shopify Checkout UI Extension for the Thank You page, paired with a Cloudflare Worker middleware that calls Trustpilot's Invitation API.
+Lightweight Shopify Checkout UI Extension for the Thank You page, paired with a Cloudflare Worker middleware that calls Trustpilot's Invitation API:
+
+- [Generate service review invitation link](https://developers.trustpilot.com/invitation-api/#generate-service-review-invitation-link)
+
+See also the [root README](../README.md) for Worker deploy + curl test steps.
+
+This is **not** the old in-app review collector widget (that HTML demo lives under `legacy/in-app-widget/` and must not be deployed as the Worker).
 
 ## Architecture
 

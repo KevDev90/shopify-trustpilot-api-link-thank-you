@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anonymous Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://reviewcollection.trustpilot.com/verifiedreviewcollector/main.js"
+      async
+    ></script>
+  </head>
+  <body class="min-h-screen bg-slate-100 bg-gradient-to-b from-slate-50 to-slate-200 text-slate-900">
+    <main class="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center px-4 py-10">
+      <section class="w-full rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200 sm:p-8">
+        <header class="mb-6 text-center">
+          <h1 class="text-2xl font-semibold tracking-tight">Share your feedback</h1>
+          <p class="mt-2 text-sm text-slate-600">Enter your email to continue to the review form.</p>
+        </header>
+
+        <div id="status-message" class="mb-4 hidden rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"></div>
+
+        <div id="view-form" class="transition-opacity duration-300">
+          <form id="email-form" class="space-y-4" novalidate>
+            <label for="email-input" class="block text-sm font-medium text-slate-700">Email Address</label>
+            <input
+              id="email-input"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="you@example.com"
+              class="w-full rounded-lg border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+            />
+
+            <button
+              id="submit-button"
+              type="submit"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 disabled:cursor-not-allowed disabled:bg-indigo-300"
+            >
+              <span id="button-label">Continue to review</span>
+              <svg id="button-spinner" class="hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path
+                  class="opacity-90"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <div id="view-widget" class="hidden opacity-0 transition-opacity duration-500">
+          <p class="mb-3 text-center text-sm text-slate-600">Complete your review below.</p>
+          <trustbox-verified-review-collector
+            id="verified-feedback-widget"
+            debug="true"
+            style-size="S"
+            locale="en-US"
+            template-id="53ch7c1d9be8a02f64d31e79"
+            businessunit-id="691f0063155049d3d99cce0f"
+            style-width="100%"
+            border-type="shadow"
+            has-animated-stars="true"
+          ></trustbox-verified-review-collector>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const WORKER_URL =
+        params.get("worker") ||
+        "https://b2b-review-collector.kej-194.workers.dev";
+      const PARTNER_SECRET = params.get("partner") || "";
+      const REDIRECT_URL = params.get("redirect") || "https://www.example.com";
+      const DEBUG_MODE = params.get("debug") === "true";
+
+      const state = {
+        current: "form",
+        payload: null,
+      };
+
+      const form = document.getElementById("email-form");
+      const emailInput = document.getElementById("email-input");
+      const submitButton = document.getElementById("submit-button");
+      const spinner = document.getElementById("button-spinner");
+      const statusMessage = document.getElementById("status-message");
+      const formView = document.getElementById("view-form");
+      const widgetView = document.getElementById("view-widget");
+      const widget = document.getElementById("verified-feedback-widget");
+
+      const debugLog = document.createElement("pre");
+      debugLog.id = "debug-log";
+      debugLog.className = "mt-4 hidden max-h-48 overflow-auto rounded-lg bg-slate-900 p-3 text-left text-xs text-slate-100";
+      document.querySelector("section")?.appendChild(debugLog);
+
+      function logDebug(message, data) {
+        if (!DEBUG_MODE) return;
+        debugLog.classList.remove("hidden");
+        const line = data ? `${message} ${JSON.stringify(data)}` : message;
+        debugLog.textContent += `${new Date().toISOString()} ${line}\n`;
+      }
+
+      if (DEBUG_MODE) {
+        logDebug("Redirect test armed", { redirect: REDIRECT_URL });
+        widget.addEventListener("tp-debug", (event) => {
+          logDebug("tp-debug event", event.detail);
+        });
+      }
+
+      let reviewPopup = null;
+      const popupWatcher = window.setInterval(() => {
+        if (!reviewPopup || !reviewPopup.closed) return;
+        window.clearInterval(popupWatcher);
+        logDebug("Trustpilot popup closed; attempting custom redirect", { redirect: REDIRECT_URL });
+        window.location.assign(REDIRECT_URL);
+      }, 500);
+
+      const originalWindowOpen = window.open.bind(window);
+      window.open = (...args) => {
+        const opened = originalWindowOpen(...args);
+        if (opened) {
+          reviewPopup = opened;
+          logDebug("Detected Trustpilot review popup", { target: args[0] || "" });
+        }
+        return opened;
+      };
+
+      function setState(nextState, errorMessage = "") {
+        state.current = nextState;
+        const loading = nextState === "loading";
+        const inWidget = nextState === "widget";
+        const inError = nextState === "error";
+
+        emailInput.disabled = loading;
+        submitButton.disabled = loading;
+        spinner.classList.toggle("hidden", !loading);
+
+        if (inWidget) {
+          formView.classList.add("hidden");
+          widgetView.classList.remove("hidden");
+          requestAnimationFrame(() => widgetView.classList.remove("opacity-0"));
+        } else {
+          formView.classList.remove("hidden");
+          widgetView.classList.add("hidden", "opacity-0");
+        }
+
+        statusMessage.textContent = errorMessage;
+        statusMessage.classList.toggle("hidden", !inError);
+      }
+
+      function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      function attachWidgetHandshake(payloadFromWorker) {
+        widget.onReady = () => {
+          widget.dispatchEvent(
+            new CustomEvent("customerDataResponse", {
+              detail: payloadFromWorker,
+            })
+          );
+        };
+      }
+
+      async function submitEmail(email) {
+        if (!PARTNER_SECRET) {
+          throw new Error("Missing partner key. Add ?partner=YOUR_PARTNER_SECRET to the URL for demo use.");
+        }
+
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Partner-Secret": PARTNER_SECRET,
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        let json;
+        try {
+          json = await response.json();
+        } catch {
+          throw new Error("The server returned an invalid response.");
+        }
+
+        if (!response.ok) {
+          throw new Error(json.error || "Unable to prepare your review request.");
+        }
+
+        const requiredFields = ["data", "iv", "tag", "sig"];
+        const hasAllFields = requiredFields.every(
+          (field) => typeof json[field] === "string" && json[field].length > 0
+        );
+        if (!hasAllFields) {
+          throw new Error("The server response is missing required fields.");
+        }
+
+        return json;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const email = emailInput.value.trim();
+
+        if (!isValidEmail(email)) {
+          setState("error", "Please enter a valid email address.");
+          return;
+        }
+
+        setState("loading");
+
+        try {
+          const payload = await submitEmail(email);
+          state.payload = payload;
+          setState("widget");
+          attachWidgetHandshake(payload);
+        } catch (error) {
+          setState(
+            "error",
+            error instanceof Error
+              ? error.message
+              : "Something went wrong while preparing your review."
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
